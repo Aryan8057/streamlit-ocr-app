@@ -83,45 +83,13 @@
 
 
 
-import os
+import gradio as gr
 import pytesseract
 from PIL import Image
-import streamlit as st
-import subprocess
 
-# Set the LD_LIBRARY_PATH
-os.environ['LD_LIBRARY_PATH'] = '/mount/src/streamlit-ocr-app/tesseract_build/lib'  # Update this path for libraries
-
-# Function to install custom Tesseract (v5.4.0)
-def install_custom_tesseract():
-    # Skip installation if Tesseract is already installed
-    if not os.path.exists("/mount/src/streamlit-ocr-app/tesseract_build/bin/tesseract"):
-        # Download the source code for the custom Tesseract version
-        subprocess.run(["git", "clone", "https://github.com/tesseract-ocr/tesseract.git"], check=True)
-        os.chdir("tesseract")
-        subprocess.run(["git", "checkout", "5.4.0"], check=True)
-
-        # Install Leptonica (Tesseract dependency)
-        subprocess.run(["git", "clone", "https://github.com/DanBloomberg/leptonica.git"], check=True)
-        os.chdir("leptonica")
-        subprocess.run(["./autogen.sh"], check=True)
-        subprocess.run(["./configure", "--prefix=/mount/src/streamlit-ocr-app/tesseract_build"], check=True)
-        subprocess.run(["make"], check=True)
-        subprocess.run(["make", "install"], check=True)
-        os.chdir("../..")  # Go back to the tesseract directory
-
-        # Compile and install Tesseract
-        os.chdir("tesseract")  # Change back to the Tesseract directory
-        subprocess.run(["./autogen.sh"], check=True)
-        subprocess.run(["./configure", "--prefix=/mount/src/streamlit-ocr-app/tesseract_build"], check=True)
-        subprocess.run(["make"], check=True)
-        subprocess.run(["make", "install"], check=True)
-
-# Install Tesseract if needed
-install_custom_tesseract()
-
-# Set path for Tesseract executable
-pytesseract.pytesseract.tesseract_cmd = "/mount/src/streamlit-ocr-app/tesseract_build/bin/tesseract"
+# Set path for Tesseract executable (using the tesseract-ocr package)
+# If Tesseract is installed properly, this should automatically configure the path
+pytesseract.pytesseract.tesseract_cmd = "tesseract"  # Assuming 'tesseract' is in the PATH
 
 # OCR function with error handling
 def process_image(image):
@@ -142,24 +110,25 @@ def search_keywords(text, keyword):
     except Exception as e:
         return f"Error during search: {str(e)}"
 
-# Streamlit app layout
-st.title("Hindi and English OCR with Keyword Search")
-
-# Upload an image
-uploaded_image = st.file_uploader("Upload an Image", type=["png", "jpg", "jpeg"])
-
-# Input for keyword search
-keyword = st.text_input("Enter Keyword to Search")
-
-# If image is uploaded and keyword is entered
-if uploaded_image is not None:
-    image = Image.open(uploaded_image)
+# Main function for OCR and keyword search
+def ocr_app(image, keyword):
     extracted_text = process_image(image)
+    search_result = search_keywords(extracted_text, keyword)
+    return extracted_text, search_result
 
-    st.subheader("Extracted Text")
-    st.text(extracted_text)
+# Gradio interface
+iface = gr.Interface(
+    fn=ocr_app,
+    inputs=[
+        gr.Image(type="pil", label="Upload Image"),
+        gr.Textbox(label="Enter Keyword to Search")
+    ],
+    outputs=[
+        gr.Textbox(label="Extracted Text"),
+        gr.Textbox(label="Search Result")
+    ],
+    title="Hindi and English OCR with Keyword Search"
+)
 
-    if keyword:
-        search_result = search_keywords(extracted_text, keyword)
-        st.subheader("Search Result")
-        st.text(search_result)
+# Launch the app
+iface.launch(debug=True)
