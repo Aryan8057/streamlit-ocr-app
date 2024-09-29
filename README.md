@@ -29,7 +29,7 @@ This project is a web application built using Streamlit that utilizes Tesseract 
 - Tesseract OCR installed on your system.
 
 ### Clone the Repository
-
+```
 git clone https://github.com/Aryan8057/streamlit-ocr-app.git
 cd streamlit-ocr-app
 python -m venv venv
