@@ -90,12 +90,12 @@ import streamlit as st
 import subprocess
 
 # Set the LD_LIBRARY_PATH
-os.environ['LD_LIBRARY_PATH'] = '/mount/src/streamlit-ocr-app/tesseract_build/tesseract/leptonica/lib'
+os.environ['LD_LIBRARY_PATH'] = '/mount/src/streamlit-ocr-app/tesseract_build/lib'  # Update this path for libraries
 
 # Function to install custom Tesseract (v5.4.0)
 def install_custom_tesseract():
     # Skip installation if Tesseract is already installed
-    if not os.path.exists("/mount/src/streamlit-ocr-app/tesseract_build/tesseract/leptonica/bin/tesseract"):
+    if not os.path.exists("/mount/src/streamlit-ocr-app/tesseract_build/bin/tesseract"):
         # Download the source code for the custom Tesseract version
         subprocess.run(["git", "clone", "https://github.com/tesseract-ocr/tesseract.git"], check=True)
         os.chdir("tesseract")
@@ -108,9 +108,10 @@ def install_custom_tesseract():
         subprocess.run(["./configure", "--prefix=/mount/src/streamlit-ocr-app/tesseract_build"], check=True)
         subprocess.run(["make"], check=True)
         subprocess.run(["make", "install"], check=True)
-        os.chdir("../tesseract")
+        os.chdir("../..")  # Go back to the tesseract directory
 
         # Compile and install Tesseract
+        os.chdir("tesseract")  # Change back to the Tesseract directory
         subprocess.run(["./autogen.sh"], check=True)
         subprocess.run(["./configure", "--prefix=/mount/src/streamlit-ocr-app/tesseract_build"], check=True)
         subprocess.run(["make"], check=True)
@@ -120,7 +121,7 @@ def install_custom_tesseract():
 install_custom_tesseract()
 
 # Set path for Tesseract executable
-pytesseract.pytesseract.tesseract_cmd = "/mount/src/streamlit-ocr-app/tesseract_build/tesseract/bin/tesseract"
+pytesseract.pytesseract.tesseract_cmd = "/mount/src/streamlit-ocr-app/tesseract_build/bin/tesseract"
 
 # OCR function with error handling
 def process_image(image):
@@ -162,4 +163,3 @@ if uploaded_image is not None:
         search_result = search_keywords(extracted_text, keyword)
         st.subheader("Search Result")
         st.text(search_result)
-
