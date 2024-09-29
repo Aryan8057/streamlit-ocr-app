@@ -97,7 +97,7 @@ def is_tesseract_installed():
     except Exception:
         return False
 
-# Function to install custom Tesseract (v5.4.0) if not installed
+# Function to install custom Tesseract (v5.4.0) locally
 def install_custom_tesseract():
     if is_tesseract_installed():
         st.success("Tesseract is already installed.")
@@ -105,6 +105,10 @@ def install_custom_tesseract():
 
     try:
         st.info("Installing Tesseract...")
+        # Create a local directory for installation
+        os.makedirs("tesseract_build", exist_ok=True)
+        os.chdir("tesseract_build")
+
         # Download the source code for Tesseract
         subprocess.run(["git", "clone", "https://github.com/tesseract-ocr/tesseract.git"], check=True)
         os.chdir("tesseract")
@@ -114,16 +118,16 @@ def install_custom_tesseract():
         subprocess.run(["git", "clone", "https://github.com/DanBloomberg/leptonica.git"], check=True)
         os.chdir("leptonica")
         subprocess.run(["./autogen.sh"], check=True)
-        subprocess.run(["./configure"], check=True)
+        subprocess.run(["./configure", "--prefix=" + os.path.abspath("../leptonica")], check=True)
         subprocess.run(["make"], check=True)
-        subprocess.run(["make", "install"], check=True)  # No sudo required in this environment
+        subprocess.run(["make", "install"], check=True)  # Install to local directory
         os.chdir("../tesseract")
 
         # Compile and install Tesseract
         subprocess.run(["./autogen.sh"], check=True)
-        subprocess.run(["./configure"], check=True)
+        subprocess.run(["./configure", "--prefix=" + os.path.abspath("../tesseract")], check=True)
         subprocess.run(["make"], check=True)
-        subprocess.run(["make", "install"], check=True)  # No sudo required in this environment
+        subprocess.run(["make", "install"], check=True)  # Install to local directory
 
         # Check installation
         subprocess.run(["tesseract", "--version"], check=True)
@@ -138,7 +142,7 @@ install_custom_tesseract()
 if os.name == 'nt':
     pytesseract.pytesseract.tesseract_cmd = "C://Program Files//Tesseract-OCR//tesseract.exe"  # Windows-specific path
 else:
-    pytesseract.pytesseract.tesseract_cmd = "/usr/local/bin/tesseract"  # Linux-specific path
+    pytesseract.pytesseract.tesseract_cmd = os.path.abspath("../tesseract/bin/tesseract")  # Local Linux path
 
 # OCR function with error handling
 def process_image(image):
