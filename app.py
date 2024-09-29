@@ -89,46 +89,56 @@ import streamlit as st
 import os
 import subprocess
 
-# Function to install custom Tesseract (v5.4.0) if not already installed
+# Function to check if Tesseract is installed
+def is_tesseract_installed():
+    try:
+        subprocess.run(["tesseract", "--version"], check=True)
+        return True
+    except Exception:
+        return False
+
+# Function to install custom Tesseract (v5.4.0) if not installed
 def install_custom_tesseract():
-    if not os.path.exists("/usr/local/bin/tesseract"):  # Check if Tesseract is already installed
-        st.write("Installing custom Tesseract (v5.4.0)...")
-        
-        # Download and install Tesseract
-        try:
-            subprocess.run(["git", "clone", "https://github.com/tesseract-ocr/tesseract.git"], check=True)
-            os.chdir("tesseract")
-            subprocess.run(["git", "checkout", "5.4.0"], check=True)  # Use your specific version tag
+    if is_tesseract_installed():
+        st.success("Tesseract is already installed.")
+        return
 
-            # Install Leptonica (Tesseract dependency)
-            subprocess.run(["git", "clone", "https://github.com/DanBloomberg/leptonica.git"], check=True)
-            os.chdir("leptonica")
-            subprocess.run(["./autogen.sh"], check=True)
-            subprocess.run(["./configure"], check=True)
-            subprocess.run(["make"], check=True)
-            subprocess.run(["sudo", "make", "install"], check=True)
-            os.chdir("../tesseract")
+    try:
+        st.info("Installing Tesseract...")
+        # Download the source code for Tesseract
+        subprocess.run(["git", "clone", "https://github.com/tesseract-ocr/tesseract.git"], check=True)
+        os.chdir("tesseract")
+        subprocess.run(["git", "checkout", "5.4.0"], check=True)  # Use your specific version tag
 
-            # Compile and install Tesseract
-            subprocess.run(["./autogen.sh"], check=True)
-            subprocess.run(["./configure"], check=True)
-            subprocess.run(["make"], check=True)
-            subprocess.run(["sudo", "make", "install"], check=True)
-            subprocess.run(["sudo", "ldconfig"], check=True)
+        # Install Leptonica (Tesseract dependency)
+        subprocess.run(["git", "clone", "https://github.com/DanBloomberg/leptonica.git"], check=True)
+        os.chdir("leptonica")
+        subprocess.run(["./autogen.sh"], check=True)
+        subprocess.run(["./configure"], check=True)
+        subprocess.run(["make"], check=True)
+        subprocess.run(["make", "install"], check=True)  # No sudo required in this environment
+        os.chdir("../tesseract")
 
-            # Check installation
-            subprocess.run(["tesseract", "--version"], check=True)
+        # Compile and install Tesseract
+        subprocess.run(["./autogen.sh"], check=True)
+        subprocess.run(["./configure"], check=True)
+        subprocess.run(["make"], check=True)
+        subprocess.run(["make", "install"], check=True)  # No sudo required in this environment
 
-            st.success("Custom Tesseract installed successfully.")
-        except Exception as e:
-            st.error(f"Failed to install Tesseract: {str(e)}")
+        # Check installation
+        subprocess.run(["tesseract", "--version"], check=True)
+        st.success("Tesseract installed successfully.")
+    except Exception as e:
+        st.error(f"Installation failed: {str(e)}")
 
-# Run the installation function
-if not os.path.exists("/usr/local/bin/tesseract"):
-    install_custom_tesseract()
+# Install Tesseract if needed
+install_custom_tesseract()
 
 # Set path for Tesseract executable
-pytesseract.pytesseract.tesseract_cmd = "/usr/local/bin/tesseract"  # Linux-specific path for Streamlit
+if os.name == 'nt':
+    pytesseract.pytesseract.tesseract_cmd = "C://Program Files//Tesseract-OCR//tesseract.exe"  # Windows-specific path
+else:
+    pytesseract.pytesseract.tesseract_cmd = "/usr/local/bin/tesseract"  # Linux-specific path
 
 # OCR function with error handling
 def process_image(image):
