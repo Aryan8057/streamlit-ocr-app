@@ -2,12 +2,12 @@ import streamlit as st
 import pytesseract
 from PIL import Image
 
-# Set the Tesseract command (default path for Linux)
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 # Function to process the uploaded image
 def process_image(image):
     try:
+        # Perform OCR on the image
         extracted_text = pytesseract.image_to_string(image, lang="hin+eng")
         if not extracted_text.strip():
             return "No text found in the image. Please try another image."
@@ -24,28 +24,29 @@ def search_keywords(text, keyword):
     except Exception as e:
         return f"Error during search: {str(e)}"
 
-# Main function for OCR and keyword search
-def ocr_app(image, keyword):
-    extracted_text = process_image(image)
-    search_result = search_keywords(extracted_text, keyword)
-    return extracted_text, search_result
-
-# Streamlit interface
+# Streamlit app layout
 st.title("Hindi and English OCR with Keyword Search")
 
-# Upload image
-uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
+# Upload an image
+uploaded_image = st.file_uploader("Upload an Image", type=["png", "jpg", "jpeg"])
 
 # Input for keyword search
 keyword = st.text_input("Enter Keyword to Search")
 
-if uploaded_file is not None and keyword:
+# If an image is uploaded
+if uploaded_image is not None:
     # Open the image file
-    image = Image.open(uploaded_file)
-    
-    # Call the OCR app function
-    extracted_text, search_result = ocr_app(image, keyword)
-    
-    # Display the results
-    st.text_area("Extracted Text", value=extracted_text, height=300)
-    st.write(search_result)
+    image = Image.open(uploaded_image)
+
+    # Call the OCR function
+    extracted_text = process_image(image)
+
+    # Display the extracted text
+    st.subheader("Extracted Text")
+    st.text(extracted_text)
+
+    # If a keyword is provided, perform the search
+    if keyword:
+        search_result = search_keywords(extracted_text, keyword)
+        st.subheader("Search Result")
+        st.text(search_result)
