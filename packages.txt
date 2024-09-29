@@ -1,1 +1,12 @@
-tesseract-ocr
+# Install dependencies for building Tesseract from source
+build-essential
+cmake
+g++
+libpng-dev
+libjpeg-dev
+libtiff-dev
+zlib1g-dev
+libicu-dev
+libpango1.0-dev
+libglib2.0-dev
+pkg-config
