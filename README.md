@@ -35,11 +35,6 @@ cd streamlit-ocr-app
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-Create a requirements.txt file and add the following dependencies:
-streamlit==1.12.0
-pytesseract==0.3.13
-Pillow==8.4.0
-
 Then run:
 pip install -r requirements.txt
 
