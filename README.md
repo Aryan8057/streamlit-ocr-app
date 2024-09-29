@@ -70,3 +70,6 @@ Contributions are welcome! Please feel free to open an issue or submit a pull re
 Acknowledgments
 Tesseract OCR for providing the OCR capabilities.
 Streamlit for creating an easy-to-use web interface.
+```
+# Streamlit Links
+https://app-ocr-01.streamlit.app/
